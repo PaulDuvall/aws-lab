@@ -22,9 +22,12 @@ Parameters:
 
 Resources:
   VPC:
-    Type: AWS::EC2:VPC
+    Type: AWS::EC2::VPC
     Properties:
       CidrBlock: !Ref VpcCIDR
       Tags:
         - Key:   Name
-          Value: !Ref EnvironmentName
+          Value: !Join
+            - ""
+            - - Lab-
+              - !Ref EnvironmentName
