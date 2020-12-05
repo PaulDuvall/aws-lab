@@ -66,20 +66,25 @@ Resources:
         - Key:   Name
           Value: !Sub ${EnvironmentName} Subnet2
 
+  #
+  # BEGIN ELASTIC BEANSTALK CONFIG
+  #
+
   WebApp:
     Type: AWS::ElasticBeanstalk::Application
-    Properties: 
+    DependsOn: WebAppInstanceProfile
+    Properties:
       ApplicationName: Web Application
       Description: AWS Elastic Beanstalk PHP Sample Application
 
-  WebAppVersion: 
+  WebAppVersion:
     Type: AWS::ElasticBeanstalk::ApplicationVersion
-    Properties: 
+    Properties:
       ApplicationName: !Ref WebApp
       Description:     WebApp v1.3
-      SourceBundle: 
+      SourceBundle:
         S3Bucket: elastic-beanstalk-sample
-        S3Key:    eb-demo-php-simple-app-v1.3.zip
+        S3Key:    php.zip
 
   # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-beanstalk-environment.html
   WebAppEnvironment:
@@ -93,18 +98,52 @@ Resources:
   # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticbeanstalk-configurationtemplate.html
   WebAppConfigurationTemplate:
     Type: AWS::ElasticBeanstalk::ConfigurationTemplate
-    Properties: 
+    Properties:
       ApplicationName:   !Ref WebApp
       Description:       !Sub Configuration for ${!Ref WebApp}
       # Get official list of SolutionStackNames via `aws elasticbeanstalk  list-available-solution-stacks`
       SolutionStackName: 64bit Amazon Linux 2 v3.1.3 running PHP 7.4
-      OptionSettings: 
+      OptionSettings:
         - Namespace:  aws:autoscaling:asg
           OptionName: MinSize
           Value:      1
+
         - Namespace:  aws:autoscaling:asg
           OptionName: MaxSize
           Value:      2
+
         - Namespace:  aws:elasticbeanstalk:environment
           OptionName: EnvironmentType
           Value:      LoadBalanced
+
+        - Namespace:  aws:autoscaling:launchconfiguration
+          OptionName: IamInstanceProfile
+          Value:      !GetAtt WebAppInstanceProfile.Arn
+
+  WebAppInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref WebAppInstanceProfileRole
+
+  WebAppInstanceProfileRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: WebAppInstanceProfileRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      # https://aws.amazon.com/premiumsupport/knowledge-center/cloudformation-attach-managed-policy/
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier
+        - arn:aws:iam::aws:policy/AWSElasticBeanstalkWorkerTier
+
+  #
+  # END ELASTIC BEANSTALK CONFIG
+  #

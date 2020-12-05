@@ -6,6 +6,7 @@ set -x
 aws cloudformation update-stack \
     --stack-name ${stack_name} \
     --template-body file://./vpc.yml \
+    --capabilities CAPABILITY_NAMED_IAM \
     --parameters \
         ParameterKey=EnvironmentName,ParameterValue=${envname}
 
