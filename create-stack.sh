@@ -1,6 +1,6 @@
 #!/usr/bin/env bash -e
-envname=${1:-production}
-stack_name=aws-lab-${envname}
+envname=${1:-prod}
+stack_name=lab-${envname}
 set -x
 
 aws cloudformation create-stack \
