@@ -1,3 +1,4 @@
+AWSTemplateFormatVersion: 2010-09-09
 Description: This produces a VPC for a web application
 
 Mappings:
@@ -15,19 +16,95 @@ Parameters:
     Description: The value for this parameter will be prefixed to resources names
     Type:        String
 
-  VpcCIDR:
-    Description: A CIDR notation that determines the IP range to be used for this VPC
+  # Ref: VPC and Subnet Sizing
+  # https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html#VPC_Sizing
+  VpcCidr:
+    Description: A CIDR that determines the IP range to be used for this VPC
     Type:        String
     Default:     10.10.0.0/16
 
+  Subnet1Cidr:
+    Description: A CIDR that determines the IP range of the subnet in the first AZ
+    Type:        String
+    # 254 IPs. Calculate with http://www.aboutmyip.com/AboutMyXApp/SubnetCalculator.jsp
+    Default:     10.10.1.0/24
+
+  Subnet2Cidr:
+    Description: A CIDR that determines the IP range of the subnet in the second AZ
+    Type:        String
+    # 254 IPs. Calculate with http://www.aboutmyip.com/AboutMyXApp/SubnetCalculator.jsp
+    Default:     10.10.2.0/24
+
 Resources:
-  VPC:
+  Vpc:
     Type: AWS::EC2::VPC
     Properties:
-      CidrBlock: !Ref VpcCIDR
+      CidrBlock: !Ref VpcCidr
       Tags:
         - Key:   Name
-          Value: !Join
-            - ""
-            - - Lab-
-              - !Ref EnvironmentName
+          Value: !Sub ${EnvironmentName} VPC
+
+  Subnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:               !Ref Vpc
+      AvailabilityZone:    !Select [ 0, !GetAZs '' ]
+      CidrBlock:            !Ref Subnet1Cidr
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key:   Name
+          Value: !Sub ${EnvironmentName} Subnet1
+
+  Subnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:               !Ref Vpc
+      AvailabilityZone:    !Select [ 1, !GetAZs '' ]
+      CidrBlock:            !Ref Subnet2Cidr
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key:   Name
+          Value: !Sub ${EnvironmentName} Subnet2
+
+  WebApp:
+    Type: AWS::ElasticBeanstalk::Application
+    Properties: 
+      ApplicationName: Web Application
+      Description: AWS Elastic Beanstalk PHP Sample Application
+
+  WebAppVersion: 
+    Type: AWS::ElasticBeanstalk::ApplicationVersion
+    Properties: 
+      ApplicationName: !Ref WebApp
+      Description:     WebApp v1.3
+      SourceBundle: 
+        S3Bucket: elastic-beanstalk-sample
+        S3Key:    eb-demo-php-simple-app-v1.3.zip
+
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-beanstalk-environment.html
+  WebAppEnvironment:
+    Type: AWS::ElasticBeanstalk::Environment
+    Properties:
+      ApplicationName:  !Ref WebApp
+      Description:      !Sub Environemnt for ${!Ref WebApp}
+      TemplateName:     !Ref WebAppConfigurationTemplate
+      VersionLabel:     !Ref WebAppVersion
+
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticbeanstalk-configurationtemplate.html
+  WebAppConfigurationTemplate:
+    Type: AWS::ElasticBeanstalk::ConfigurationTemplate
+    Properties: 
+      ApplicationName:   !Ref WebApp
+      Description:       !Sub Configuration for ${!Ref WebApp}
+      # Get official list of SolutionStackNames via `aws elasticbeanstalk  list-available-solution-stacks`
+      SolutionStackName: 64bit Amazon Linux 2 v3.1.3 running PHP 7.4
+      OptionSettings: 
+        - Namespace:  aws:autoscaling:asg
+          OptionName: MinSize
+          Value:      1
+        - Namespace:  aws:autoscaling:asg
+          OptionName: MaxSize
+          Value:      2
+        - Namespace:  aws:elasticbeanstalk:environment
+          OptionName: EnvironmentType
+          Value:      LoadBalanced

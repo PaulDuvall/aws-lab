@@ -3,7 +3,7 @@ envname=${1:-production}
 stack_name=aws-lab-${envname}
 set -x
 
-aws cloudformation create-stack \
+aws cloudformation update-stack \
     --stack-name ${stack_name} \
     --template-body file://./vpc.yml \
     --parameters \
@@ -11,4 +11,4 @@ aws cloudformation create-stack \
 
 { set +x; } 2>/dev/null
 echo "Track progress at https://console.aws.amazon.com/cloudformation"
-aws cloudformation wait stack-create-complete --stack-name ${stack_name}
+aws cloudformation wait stack-update-complete --stack-name ${stack_name}
