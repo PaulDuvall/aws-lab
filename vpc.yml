@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: This produces a VPC for a web application
+Description: This deploys a PHP application using Elastic Beanstalk
 
 Resources:
   #
@@ -21,6 +21,7 @@ Resources:
       Description:     WebApp v1.3
       SourceBundle:
         S3Bucket: elastic-beanstalk-sample
+        # Copied from https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/tutorials.html
         S3Key:    php.zip
 
   # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-beanstalk-environment.html
