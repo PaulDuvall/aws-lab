@@ -72,6 +72,7 @@ Resources:
 
   WebApp:
     Type: AWS::ElasticBeanstalk::Application
+    # Explicitly state this to avoid a race condition
     DependsOn: WebAppInstanceProfile
     Properties:
       ApplicationName: Web Application
