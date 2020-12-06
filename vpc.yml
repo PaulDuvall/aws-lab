@@ -99,9 +99,9 @@ Resources:
   WebApp:
     Type: AWS::ElasticBeanstalk::Application
     # Explicitly state this to avoid a race condition
-    DependsOn: WebAppInstanceProfile
+    DependsOn: InstanceProfile
     Properties:
-      ApplicationName: Web Application
+      ApplicationName: Web App
       Description: AWS Elastic Beanstalk PHP Sample Application
 
   WebAppVersion:
@@ -135,7 +135,7 @@ Resources:
       OptionSettings:
         - Namespace:  aws:autoscaling:asg
           OptionName: MinSize
-          Value:      1
+          Value:      2
 
         - Namespace:  aws:autoscaling:asg
           OptionName: MaxSize
@@ -147,7 +147,7 @@ Resources:
 
         - Namespace:  aws:autoscaling:launchconfiguration
           OptionName: IamInstanceProfile
-          Value:      !GetAtt WebAppInstanceProfile.Arn
+          Value:      !GetAtt InstanceProfile.Arn
 
         - Namespace:  aws:ec2:vpc
           OptionName: VPCId
@@ -161,16 +161,85 @@ Resources:
         #   OptionName: DbSubnets
         #   Value:      !Sub "${!Ref PublicSubnet1},${!Ref PublicSubnet2}"
 
-  WebAppInstanceProfile:
+  #
+  # Node.js Application
+  #
+
+  RestApi:
+    Type: AWS::ElasticBeanstalk::Application
+    # Explicitly state this to avoid a race condition
+    DependsOn: InstanceProfile
+    Properties:
+      ApplicationName: REST API
+      Description: AWS Elastic Beanstalk Node.js Sample REST API
+
+  RestApiVersion:
+    Type: AWS::ElasticBeanstalk::ApplicationVersion
+    Properties:
+      ApplicationName: !Ref RestApi
+      Description:     Rest API v1.0
+      SourceBundle:
+        S3Bucket: elastic-beanstalk-sample
+        # Copied from https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/tutorials.html
+        S3Key:    nodejs.zip
+
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-beanstalk-environment.html
+  RestApiEnvironment:
+    Type: AWS::ElasticBeanstalk::Environment
+    Properties:
+      ApplicationName:  !Ref RestApi
+      Description:      !Sub Environemnt for ${!Ref RestApi}
+      TemplateName:     !Ref RestApiConfigurationTemplate
+      VersionLabel:     !Ref RestApiVersion
+
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticbeanstalk-configurationtemplate.html
+  RestApiConfigurationTemplate:
+    Type: AWS::ElasticBeanstalk::ConfigurationTemplate
+    Properties:
+      ApplicationName:   !Ref RestApi
+      Description:       !Sub Configuration for ${!Ref RestApi}
+      # Get official list of SolutionStackNames via `aws elasticbeanstalk  list-available-solution-stacks`
+      SolutionStackName: 64bit Amazon Linux 2 v3.1.3 running PHP 7.4
+      # https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/command-options.html
+      OptionSettings:
+        - Namespace:  aws:autoscaling:asg
+          OptionName: MinSize
+          Value:      2
+
+        - Namespace:  aws:autoscaling:asg
+          OptionName: MaxSize
+          Value:      2
+
+        - Namespace:  aws:elasticbeanstalk:environment
+          OptionName: EnvironmentType
+          Value:      LoadBalanced
+
+        - Namespace:  aws:autoscaling:launchconfiguration
+          OptionName: IamInstanceProfile
+          Value:      !GetAtt InstanceProfile.Arn
+
+        - Namespace:  aws:ec2:vpc
+          OptionName: VPCId
+          Value:      !Ref VPC
+
+        - Namespace:  aws:ec2:vpc
+          OptionName: Subnets
+          Value:      !Join [ ",", [ !Ref PublicSubnet1, !Ref PublicSubnet2 ] ]
+
+  #
+  # Intance Profile to be used by EB
+  #
+
+  InstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Roles:
-        - !Ref WebAppInstanceProfileRole
+        - !Ref InstanceProfileRole
 
-  WebAppInstanceProfileRole:
+  InstanceProfileRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: WebAppInstanceProfileRole
+      RoleName: InstanceProfileRole
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
