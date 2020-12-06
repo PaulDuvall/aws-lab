@@ -99,7 +99,9 @@ Resources:
   WebApp:
     Type: AWS::ElasticBeanstalk::Application
     # Explicitly state this to avoid a race condition
-    DependsOn: InstanceProfile
+    DependsOn:
+      - InstanceProfile
+      - Alb
     Properties:
       ApplicationName: Web App
       Description: AWS Elastic Beanstalk PHP Sample Application
@@ -145,6 +147,27 @@ Resources:
           OptionName: EnvironmentType
           Value:      LoadBalanced
 
+        - Namespace:  aws:elasticbeanstalk:environment
+          OptionName: LoadBalancerType
+          Value:      application
+
+        # This value cannot be changed once the environment is created
+        - Namespace:  aws:elasticbeanstalk:environment
+          OptionName: LoadBalancerIsShared
+          Value:      true
+
+        - Namespace:  aws:elbv2:loadbalancer
+          OptionName: SharedLoadBalancer
+          Value:      !Ref Alb
+
+        - Namespace:  aws:elbv2:listener:80
+          OptionName: Rules
+          Value:      web
+
+        - Namespace:  aws:elbv2:listenerrule:web
+          OptionName: PathPatterns
+          Value:      /app/*
+
         - Namespace:  aws:autoscaling:launchconfiguration
           OptionName: IamInstanceProfile
           Value:      !GetAtt InstanceProfile.Arn
@@ -161,70 +184,70 @@ Resources:
         #   OptionName: DbSubnets
         #   Value:      !Sub "${!Ref PublicSubnet1},${!Ref PublicSubnet2}"
 
+  # #
+  # # Node.js Application
+  # #
   #
-  # Node.js Application
+  # RestApi:
+  #   Type: AWS::ElasticBeanstalk::Application
+  #   # Explicitly state this to avoid a race condition
+  #   DependsOn: InstanceProfile
+  #   Properties:
+  #     ApplicationName: REST API
+  #     Description: AWS Elastic Beanstalk Node.js Sample REST API
   #
-
-  RestApi:
-    Type: AWS::ElasticBeanstalk::Application
-    # Explicitly state this to avoid a race condition
-    DependsOn: InstanceProfile
-    Properties:
-      ApplicationName: REST API
-      Description: AWS Elastic Beanstalk Node.js Sample REST API
-
-  RestApiVersion:
-    Type: AWS::ElasticBeanstalk::ApplicationVersion
-    Properties:
-      ApplicationName: !Ref RestApi
-      Description:     Rest API v1.0
-      SourceBundle:
-        S3Bucket: elastic-beanstalk-sample
-        # Copied from https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/tutorials.html
-        S3Key:    nodejs.zip
-
-  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-beanstalk-environment.html
-  RestApiEnvironment:
-    Type: AWS::ElasticBeanstalk::Environment
-    Properties:
-      ApplicationName:  !Ref RestApi
-      Description:      !Sub Environemnt for ${!Ref RestApi}
-      TemplateName:     !Ref RestApiConfigurationTemplate
-      VersionLabel:     !Ref RestApiVersion
-
-  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticbeanstalk-configurationtemplate.html
-  RestApiConfigurationTemplate:
-    Type: AWS::ElasticBeanstalk::ConfigurationTemplate
-    Properties:
-      ApplicationName:   !Ref RestApi
-      Description:       !Sub Configuration for ${!Ref RestApi}
-      # Get official list of SolutionStackNames via `aws elasticbeanstalk  list-available-solution-stacks`
-      SolutionStackName: 64bit Amazon Linux 2 v3.1.3 running PHP 7.4
-      # https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/command-options.html
-      OptionSettings:
-        - Namespace:  aws:autoscaling:asg
-          OptionName: MinSize
-          Value:      2
-
-        - Namespace:  aws:autoscaling:asg
-          OptionName: MaxSize
-          Value:      2
-
-        - Namespace:  aws:elasticbeanstalk:environment
-          OptionName: EnvironmentType
-          Value:      LoadBalanced
-
-        - Namespace:  aws:autoscaling:launchconfiguration
-          OptionName: IamInstanceProfile
-          Value:      !GetAtt InstanceProfile.Arn
-
-        - Namespace:  aws:ec2:vpc
-          OptionName: VPCId
-          Value:      !Ref VPC
-
-        - Namespace:  aws:ec2:vpc
-          OptionName: Subnets
-          Value:      !Join [ ",", [ !Ref PublicSubnet1, !Ref PublicSubnet2 ] ]
+  # RestApiVersion:
+  #   Type: AWS::ElasticBeanstalk::ApplicationVersion
+  #   Properties:
+  #     ApplicationName: !Ref RestApi
+  #     Description:     Rest API v1.0
+  #     SourceBundle:
+  #       S3Bucket: elastic-beanstalk-sample
+  #       # Copied from https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/tutorials.html
+  #       S3Key:    nodejs.zip
+  #
+  # # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-beanstalk-environment.html
+  # RestApiEnvironment:
+  #   Type: AWS::ElasticBeanstalk::Environment
+  #   Properties:
+  #     ApplicationName:  !Ref RestApi
+  #     Description:      !Sub Environemnt for ${!Ref RestApi}
+  #     TemplateName:     !Ref RestApiConfigurationTemplate
+  #     VersionLabel:     !Ref RestApiVersion
+  #
+  # # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticbeanstalk-configurationtemplate.html
+  # RestApiConfigurationTemplate:
+  #   Type: AWS::ElasticBeanstalk::ConfigurationTemplate
+  #   Properties:
+  #     ApplicationName:   !Ref RestApi
+  #     Description:       !Sub Configuration for ${!Ref RestApi}
+  #     # Get official list of SolutionStackNames via `aws elasticbeanstalk  list-available-solution-stacks`
+  #     SolutionStackName: 64bit Amazon Linux 2 v3.1.3 running PHP 7.4
+  #     # https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/command-options.html
+  #     OptionSettings:
+  #       - Namespace:  aws:autoscaling:asg
+  #         OptionName: MinSize
+  #         Value:      2
+  #
+  #       - Namespace:  aws:autoscaling:asg
+  #         OptionName: MaxSize
+  #         Value:      2
+  #
+  #       - Namespace:  aws:elasticbeanstalk:environment
+  #         OptionName: EnvironmentType
+  #         Value:      LoadBalanced
+  #
+  #       - Namespace:  aws:autoscaling:launchconfiguration
+  #         OptionName: IamInstanceProfile
+  #         Value:      !GetAtt InstanceProfile.Arn
+  #
+  #       - Namespace:  aws:ec2:vpc
+  #         OptionName: VPCId
+  #         Value:      !Ref VPC
+  #
+  #       - Namespace:  aws:ec2:vpc
+  #         OptionName: Subnets
+  #         Value:      !Join [ ",", [ !Ref PublicSubnet1, !Ref PublicSubnet2 ] ]
 
   #
   # Intance Profile to be used by EB
@@ -253,3 +276,63 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier
         - arn:aws:iam::aws:policy/AWSElasticBeanstalkWorkerTier
+
+  #
+  # ALB
+  # Adapted from https://computingforgeeks.com/configure-aws-application-load-balancer-with-cloudformation/
+  #
+
+  AlbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+        GroupDescription: !Sub Security group for ${AWS::StackName} ALB
+        GroupName:        !Sub ${AWS::StackName}-sg
+        VpcId:            !Ref VPC
+        SecurityGroupIngress:
+          - CidrIp:     0.0.0.0/0
+            IpProtocol: tcp
+            FromPort:   80
+            ToPort:     80
+
+          - CidrIp:     0.0.0.0/0
+            IpProtocol: tcp
+            FromPort:   443
+            ToPort:     443
+
+  Alb:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+        Name:          !Sub ${AWS::StackName}-LB
+        Scheme:        internet-facing
+        Type:          application
+        IpAddressType: ipv4
+        Subnets:
+          - !Ref PublicSubnet1
+          - !Ref PublicSubnet2
+        SecurityGroups:
+          - !Ref AlbSecurityGroup
+        # Supported values for LoadBalancerAttributes key are documented at
+        # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticloadbalancingv2-loadbalancer-loadbalancerattributes.html
+        # LoadBalancerAttributes:
+
+  AlbHttpListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+        LoadBalancerArn: !Ref Alb
+        Port:            80
+        Protocol:        HTTP
+        DefaultActions:
+          - Order: 1
+            Type:  fixed-response
+            FixedResponseConfig:
+              ContentType: text/plain
+              StatusCode:  404
+              MessageBody: You can't haz HTTP 200
+        # Use these instead to support HTTPS
+        # Port:      443
+        # Protocol:  "HTTPS"
+        # SslPolicy: "ELBSecurityPolicy-2016-08"
+        # Certificates:
+        #   # Create using this guide
+        #   # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-certificatemanager-certificate.html
+        #   - CertificateArn: !Ref HttpsListenerCertificate
