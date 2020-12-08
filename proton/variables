@@ -1,0 +1,8 @@
+region=us-west-2
+stack_name=proton-prerequisites
+template_arch=env-template.tar.gz
+template_name=public-vpc
+
+get_s3_bucket () {
+    aws --region ${region} cloudformation describe-stack-resources --stack-name proton-prerequisites | jq -r '.StackResources[] | select(.LogicalResourceId=="ProtonBucket") | .PhysicalResourceId'
+}
