@@ -40,7 +40,7 @@ s3_bucket=$(get_s3_bucket)
 
 # Upload the service template archive if it doesn't already exist
 if ! aws s3 ls --region ${region} s3://${s3_bucket}/${service_template_arch} >/dev/null; then
-    aws s3 cp proton/${environment_template_arch} s3://${s3_bucket}/${service_template_arch} \
+    aws s3 cp proton/${service_template_arch} s3://${s3_bucket}/${service_template_arch} \
         --region ${region}
 fi
 
