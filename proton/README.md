@@ -2,9 +2,9 @@ This follows the example steps documented in
 https://github.com/aws-samples/aws-proton-sample-templates
 
 All templates and code examples are taken from there. Please
-refer to that repos LICENSE file for more information.
+refer to that repo's LICENSE file for more information.
 
-Run the following in order
+### Quick Start
 
 ```
 proton/create-prerequisites.sh
@@ -17,12 +17,13 @@ the following error:
 
 > The template schema is not valid: Missing property [pipelineInputType]
 
-Whih is confusing since the service schema is just taken from the tutorial
-and the documentation seems to confirm the schema's schema: https://docs.aws.amazon.com/proton/latest/adminguide/svc-schema.html
+This is confusing since the service schema is just taken from the tutorial
+and the documentation seems to confirm the schema's schema:
+https://docs.aws.amazon.com/proton/latest/adminguide/svc-schema.html
 
 
-Cleaning up
+### Cleaning up
 
 ```
-proton/delete-everythin.sh
+proton/delete-everything.sh
 ```
