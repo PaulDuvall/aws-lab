@@ -2,6 +2,9 @@
 . proton/variables
 
 set -x
+
+s3_bucket=$(get_s3_bucket)
+
 aws proton-preview delete-service-template-minor-version \
   --region ${region} \
   --template-name ${service_template_name} \
@@ -17,7 +20,7 @@ aws proton-preview delete-service-template \
   --region "${region}" \
   --template-name "${service_template_name}" \
 
-aws s3 rm s3://$(get_s3_bucket)/${service_template_arch} --region ${region}
+aws s3 rm s3://${s3_bucket}/${service_template_arch} --region ${region}
 
 aws proton-preview delete-environment-template-minor-version \
   --region ${region} \
@@ -34,7 +37,7 @@ aws proton-preview delete-environment-template \
   --region "${region}" \
   --template-name "${environment_template_name}" \
 
-aws s3 rm s3://$(get_s3_bucket)/${environment_template_arch} --region ${region}
+aws s3 rm s3://${s3_bucket}/${environment_template_arch} --region ${region}
 
 aws cloudformation delete-stack \
     --stack-name ${stack_name} \

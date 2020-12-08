@@ -36,9 +36,11 @@ if [ ! -f $service_template_arch ]; then
 fi
 cd - >/dev/null
 
+s3_bucket=$(get_s3_bucket)
+
 # Upload the service template archive if it doesn't already exist
-if ! aws s3 ls --region ${region} s3://$(get_s3_bucket)/${service_template_arch} >/dev/null; then
-    aws s3 cp proton/${environment_template_arch} s3://$(get_s3_bucket)/${service_template_arch} \
+if ! aws s3 ls --region ${region} s3://${s3_bucket}/${service_template_arch} >/dev/null; then
+    aws s3 cp proton/${environment_template_arch} s3://${s3_bucket}/${service_template_arch} \
         --region ${region}
 fi
 
@@ -51,7 +53,7 @@ if [ 0 -eq $(aws proton-preview list-service-template-minor-versions \
       --template-name "${service_template_name}" \
       --description "Version 1.0" \
       --major-version-id "1" \
-      --source-s3-bucket $(get_s3_bucket) \
+      --source-s3-bucket ${s3_bucket} \
       --source-s3-key ${service_template_arch}
 
     aws proton-preview wait service-template-registration-complete \
