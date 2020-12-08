@@ -3,6 +3,7 @@
 set -x
 . proton/variables
 
+
 # Create the environment template if it doesn't already exist
 aws proton-preview get-environment-template \
     --template-name public-vpc \
