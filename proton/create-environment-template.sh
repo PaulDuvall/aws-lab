@@ -6,7 +6,7 @@ set -x
 # Create the environment template if it doesn't already exist
 aws proton-preview get-environment-template \
     --template-name public-vpc \
-    --region ${region} 1>/dev/null 2>$1 ||
+    --region ${region} 1>/dev/null 2>&1 ||
 aws proton-preview create-environment-template \
   --region "${region}" \
   --template-name "${template_name}" \
