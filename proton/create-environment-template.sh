@@ -58,11 +58,3 @@ if [ 0 -eq $(aws proton-preview --region ${region} list-environment-template-min
       --minor-version-id "0" \
       --status "PUBLISHED"
 fi
-
-# major_ver_arn=$(aws proton-preview get-environment-template --template-name public-vpc --region ${region} | jq -r '.environmentTemplate.arn')
-#
-# aws proton-preview create-environment-template-major-version \
-#   --region ${region} \
-#   --template-name ${template_name} \
-#   --description "Version 1" \
-#   --compatible-environment-template-major-version-arns ${major_ver_arn}:1
