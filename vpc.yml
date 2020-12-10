@@ -11,6 +11,9 @@ Parameters:
   Subnet2CidrBlock:
     Type:    String
     Default: 10.1.11.0/24
+  HostedZoneId:
+    Type:    String
+    Default: Z0140491KYZ2JUQ27RBR
 
 Resources:
   #
@@ -198,8 +201,8 @@ Resources:
     Properties:
       ApplicationName:   !Ref RestApi
       Description:       !Sub Configuration for ${!Ref RestApi}
-      # Get official list of SolutionStackNames via `aws elasticbeanstalk  list-available-solution-stacks`
-      SolutionStackName: 64bit Amazon Linux 2 v3.1.3 running PHP 7.4
+      # Get official list of SolutionStackNames via `aws elasticbeanstalk list-available-solution-stacks`
+      SolutionStackName: 64bit Amazon Linux 2018.03 v4.17.0 running Node.js
       # https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/command-options.html
       OptionSettings:
         - Namespace:  aws:autoscaling:asg
@@ -253,3 +256,55 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier
         - arn:aws:iam::aws:policy/AWSElasticBeanstalkWorkerTier
+
+  #
+  # Application Load Balancer
+  #
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Scheme: internet-facing
+      Subnets:
+      - !Ref PublicSubnet1
+      - !Ref PublicSubnet2
+      SecurityGroups:
+      - !Ref LoadBalancerSecurityGroup
+
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+        GroupDescription: 'Allow port 80'
+        VpcId: !Ref VPC
+        SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort:   80
+          ToPort:     80
+          CidrIp:     0.0.0.0/0
+
+  WebAppListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: fixed-response
+          FixedResponseConfig:
+            ContentType: text/plain
+            MessageBody: You've reached app.nextbigthing.relaxdiego.com
+            StatusCode:  200
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+  #
+  # DNS Records
+  #
+
+  WebAppDnsRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name:         app.nextbigthing.relaxdiego.com
+      Type:         CNAME
+      TTL:          900
+      ResourceRecords:
+      - !GetAtt LoadBalancer.DNSName
