@@ -96,6 +96,68 @@ Resources:
       RouteTableId: !Ref PublicRouteTable
 
   #
+  # Shared Application Load Balancer
+  #
+
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+        GroupDescription: Allow port 80 from anywhere
+        VpcId:            !Ref VPC
+        SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort:   80
+          ToPort:     80
+          CidrIp:     0.0.0.0/0
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Scheme: internet-facing
+      Subnets:
+      - !Ref PublicSubnet1
+      - !Ref PublicSubnet2
+      SecurityGroups:
+      - !Ref LoadBalancerSecurityGroup
+
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Port:            80
+      Protocol:        HTTP
+      DefaultActions:
+        - Type: fixed-response
+          FixedResponseConfig:
+            ContentType: text/plain
+            MessageBody: You've reached this page by mistake
+            StatusCode:  404
+
+  #
+  # DNS Records
+  #
+
+  WebAppDnsRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name:         app.nextbigthing.relaxdiego.com
+      Type:         CNAME
+      TTL:          900
+      ResourceRecords:
+      - !GetAtt LoadBalancer.DNSName
+
+  RestApiDnsRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name:         api.nextbigthing.relaxdiego.com
+      Type:         CNAME
+      TTL:          900
+      ResourceRecords:
+      - !GetAtt LoadBalancer.DNSName
+
+  #
   # PHP Application
   #
 
@@ -145,8 +207,32 @@ Resources:
           Value:      2
 
         - Namespace:  aws:elasticbeanstalk:environment
-          OptionName: EnvironmentType
-          Value:      LoadBalanced
+          OptionName: LoadBalancerType
+          Value:      application
+
+        - Namespace:  aws:elasticbeanstalk:environment
+          OptionName: LoadBalancerIsShared
+          Value:      true
+
+        - Namespace:  aws:elbv2:loadbalancer
+          OptionName: SecurityGroups
+          Value:      !Ref LoadBalancerSecurityGroup
+
+        - Namespace:  aws:elbv2:loadbalancer
+          OptionName: SharedLoadBalancer
+          Value:      !Ref LoadBalancer
+
+        - Namespace:  aws:elbv2:listener:80
+          OptionName: Rules
+          Value:      app
+
+        - Namespace:  aws:elbv2:listenerrule:app
+          OptionName: HostHeaders
+          Value:      app.nextbigthing.relaxdiego.com
+
+        - Namespace:  aws:elbv2:listenerrule:app
+          OptionName: Priority
+          Value:      20
 
         - Namespace:  aws:autoscaling:launchconfiguration
           OptionName: IamInstanceProfile
@@ -159,10 +245,6 @@ Resources:
         - Namespace:  aws:ec2:vpc
           OptionName: Subnets
           Value:      !Join [ ",", [ !Ref PublicSubnet1, !Ref PublicSubnet2 ] ]
-
-        # - Namespace:  aws:ec2:vpc
-        #   OptionName: DbSubnets
-        #   Value:      !Sub "${!Ref PublicSubnet1},${!Ref PublicSubnet2}"
 
   #
   # Node.js Application
@@ -214,8 +296,32 @@ Resources:
           Value:      2
 
         - Namespace:  aws:elasticbeanstalk:environment
-          OptionName: EnvironmentType
-          Value:      LoadBalanced
+          OptionName: LoadBalancerType
+          Value:      application
+
+        - Namespace:  aws:elasticbeanstalk:environment
+          OptionName: LoadBalancerIsShared
+          Value:      true
+
+        - Namespace:  aws:elbv2:loadbalancer
+          OptionName: SecurityGroups
+          Value:      !Ref LoadBalancerSecurityGroup
+
+        - Namespace:  aws:elbv2:loadbalancer
+          OptionName: SharedLoadBalancer
+          Value:      !Ref LoadBalancer
+
+        - Namespace:  aws:elbv2:listener:80
+          OptionName: Rules
+          Value:      api
+
+        - Namespace:  aws:elbv2:listenerrule:api
+          OptionName: HostHeaders
+          Value:      api.nextbigthing.relaxdiego.com
+
+        - Namespace:  aws:elbv2:listenerrule:api
+          OptionName: Priority
+          Value:      10
 
         - Namespace:  aws:autoscaling:launchconfiguration
           OptionName: IamInstanceProfile
@@ -256,55 +362,3 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier
         - arn:aws:iam::aws:policy/AWSElasticBeanstalkWorkerTier
-
-  #
-  # Application Load Balancer
-  #
-
-  LoadBalancer:
-    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-    Properties:
-      Scheme: internet-facing
-      Subnets:
-      - !Ref PublicSubnet1
-      - !Ref PublicSubnet2
-      SecurityGroups:
-      - !Ref LoadBalancerSecurityGroup
-
-  LoadBalancerSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-        GroupDescription: 'Allow port 80'
-        VpcId: !Ref VPC
-        SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort:   80
-          ToPort:     80
-          CidrIp:     0.0.0.0/0
-
-  WebAppListener:
-    Type: AWS::ElasticLoadBalancingV2::Listener
-    Properties:
-      DefaultActions:
-        - Type: fixed-response
-          FixedResponseConfig:
-            ContentType: text/plain
-            MessageBody: You've reached app.nextbigthing.relaxdiego.com
-            StatusCode:  200
-      LoadBalancerArn: !Ref LoadBalancer
-      Port: 80
-      Protocol: HTTP
-
-  #
-  # DNS Records
-  #
-
-  WebAppDnsRecord:
-    Type: AWS::Route53::RecordSet
-    Properties:
-      HostedZoneId: !Ref HostedZoneId
-      Name:         app.nextbigthing.relaxdiego.com
-      Type:         CNAME
-      TTL:          900
-      ResourceRecords:
-      - !GetAtt LoadBalancer.DNSName
