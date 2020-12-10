@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: This deploys a PHP application using Elastic Beanstalk
+Description: This deploys NextBigThing, Inc's services in a VPC
 
 Parameters:
   VpcCidrBlock:
