@@ -136,6 +136,10 @@ Resources:
   #
   # API Gateway
   #
+
+  # This is still incomplete. We should create a resrouce of type
+  # AWS::ApiGatewayV2::Integration and integrate that with LoadBalancerListener
+
   ApiGateway:
     Type: AWS::ApiGatewayV2::Api
     Properties:
@@ -157,6 +161,7 @@ Resources:
         - OPTIONS
         AllowHeaders:
         - content-type
+      # We need to add throttling rules to this resource
 
   #
   # DNS Records
