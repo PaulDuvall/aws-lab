@@ -134,6 +134,31 @@ Resources:
             StatusCode:  404
 
   #
+  # API Gateway
+  #
+  ApiGateway:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name:                      REST API Gateway
+      Description:               API Gateway for REST API
+      DisableExecuteApiEndpoint: true
+      ProtocolType:              HTTP
+      Target:                    http://api.nextbigthing.relaxdiego.com
+      # Temporarily enabled for testing purposes
+      DisableExecuteApiEndpoint: false
+      Version:                   1
+      CorsConfiguration:
+        AllowOrigins:
+        - http://app.nextbigthing.relaxdiego.com
+        AllowMethods:
+        - GET
+        - POST
+        - PUT
+        - OPTIONS
+        AllowHeaders:
+        - content-type
+
+  #
   # DNS Records
   #
 
