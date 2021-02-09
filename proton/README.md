@@ -7,6 +7,9 @@ refer to that repo's LICENSE file for more information.
 ### Quick Start
 
 ```
+git clone https://github.com/PaulDuvall/aws-lab.git
+cd aws-lab
+
 proton/create-prerequisites.sh
 proton/create-environment-template.sh
 proton/create-service-template.sh
