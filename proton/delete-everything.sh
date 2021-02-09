@@ -1,4 +1,4 @@
-#!/usr/bin/env bash -e
+#!/usr/bin/env bash
 . proton/variables
 
 set -x
@@ -50,3 +50,5 @@ set -x
 aws cloudformation wait stack-delete-complete \
     --stack-name ${stack_name} \
     --region ${region}
+    
+aws proton-preview delete-account-roles --region ${region}
