@@ -55,7 +55,8 @@ Resources:
                   - cloudformation:ListChangeSets
                   - cloudformation:ListStackResources
                   - cloudformation:UpdateStack"
-                Resource: arn:aws:cloudformation:*:693454452852:stack/AWSProton-*
+                Resource:
+                - !Sub arn:aws:cloudformation:*:${AWS::AccountId}:stack/AWSProton-*
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AdministratorAccess
 
