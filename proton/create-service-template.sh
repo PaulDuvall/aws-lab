@@ -1,4 +1,4 @@
-#/usr/bin/env -e
+#/usr/bin/env
 
 set -x
 . proton/variables

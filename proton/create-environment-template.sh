@@ -1,8 +1,12 @@
-#/usr/bin/env -e
+#/usr/bin/env
 
 set -x
 . proton/variables
 
+if ! jq 1>/dev/null 2>&1; then
+    # Install the jq
+    sudo yum -y install jq
+fi
 
 # Create the environment template if it doesn't already exist
 aws proton-preview get-environment-template \
