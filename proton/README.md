@@ -12,9 +12,21 @@ proton/create-environment-template.sh
 proton/create-service-template.sh
 ```
 
+### Configure Roles
+
+Run the command below to link the IAM Role provisioned from the CloudFormation Stack to Proton. 
+
+```
+
+aws proton-preview update-account-roles \
+  --region us-west-2 \
+  --account-role-details "pipelineServiceRoleArn=arn:aws:iam::${account_id}:role/ProtonServiceRole"
+```
+
+
 ## Create Proton Environment
 
-TBD
+Run the commands below to create a Proton Environment.
 
 ```
 git clone https://github.com/aws-samples/aws-proton-sample-templates
@@ -35,18 +47,11 @@ aws proton-preview wait environment-deployment-complete \
 
 ```
 
-### Configure Roles
-
-```
-
-aws proton-preview update-account-roles \
-  --region us-west-2 \
-  --account-role-details "pipelineServiceRoleArn=arn:aws:iam::${account_id}:role/ProtonServiceRole"
-```
-
 ### Create Proton Service
 
-[Connection](https://us-west-2.console.aws.amazon.com/codesuite/settings/connections?region=us-west-2)
+Update your AWS CodeStar [Connection](https://us-west-2.console.aws.amazon.com/codesuite/settings/connections?region=us-west-2) to ensure it's connected GitHub to AWS.
+
+Run the command below replacing `<your-codestar-connection-id>` with the id from the link above. You also need to replace the `<your-source-repo-account>/<your-repository-name>` with the appropriate values for your GitHub account and repository names.
 
 ```
 aws proton-preview create-service \
