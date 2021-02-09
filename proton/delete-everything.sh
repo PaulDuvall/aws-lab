@@ -50,5 +50,7 @@ set -x
 aws cloudformation wait stack-delete-complete \
     --stack-name ${stack_name} \
     --region ${region}
+
+aws iam delete-role --role-name ProtonServiceRole
     
 aws proton-preview delete-account-roles --region ${region}
