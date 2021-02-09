@@ -6,4 +6,4 @@ refer to that repo's LICENSE file for more information.
 
 ### Quick Start
 
-See AWS in 5 Minutest Proton [README](https://github.com/PaulDuvall/aws-5-mins/tree/main/proton).
+See AWS in 5 Minutes Proton [README](https://github.com/PaulDuvall/aws-5-mins/tree/main/proton).
