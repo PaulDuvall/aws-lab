@@ -7,6 +7,8 @@ refer to that repo's LICENSE file for more information.
 ### Quick Start
 
 ```
+account_id=`aws sts get-caller-identity|jq -r ".Account"`
+
 git clone https://github.com/PaulDuvall/aws-lab.git
 cd aws-lab
 
