@@ -20,7 +20,6 @@ proton/create-service-template.sh
 Run the command below to link the IAM Role provisioned from the CloudFormation Stack to Proton. 
 
 ```
-
 aws proton-preview update-account-roles \
   --region us-west-2 \
   --account-role-details "pipelineServiceRoleArn=arn:aws:iam::${account_id}:role/ProtonServiceRole"
