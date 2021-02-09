@@ -69,3 +69,7 @@ if [ 0 -eq $(aws proton-preview list-service-template-minor-versions \
       --minor-version-id "0" \
       --status "PUBLISHED"
 fi
+
+aws proton-preview update-account-roles \
+  --region ${region} \
+  --account-role-details "pipelineServiceRoleArn=arn:aws:iam::${account_id}:role/${service_role_name}"
