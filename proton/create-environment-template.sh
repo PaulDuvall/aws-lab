@@ -8,6 +8,8 @@ if ! jq 1>/dev/null 2>&1; then
     sudo yum -y install jq
 fi
 
+account_id=`aws sts get-caller-identity|jq -r ".Account"`
+
 # Create the environment template if it doesn't already exist
 aws proton-preview get-environment-template \
     --template-name public-vpc \

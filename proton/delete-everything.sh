@@ -3,6 +3,13 @@
 
 set -x
 
+if ! jq 1>/dev/null 2>&1; then
+    # Install the jq
+    sudo yum -y install jq
+fi
+
+account_id=`aws sts get-caller-identity|jq -r ".Account"`
+
 s3_bucket=$(get_s3_bucket)
 
 aws proton-preview delete-service-template-minor-version \

@@ -3,6 +3,13 @@
 set -x
 . proton/variables
 
+if ! jq 1>/dev/null 2>&1; then
+    # Install the jq
+    sudo yum -y install jq
+fi
+
+account_id=`aws sts get-caller-identity|jq -r ".Account"`
+
 # Create the service template if it doesn't already exist
 aws proton-preview get-service-template \
     --template-name "${service_template_name}" \
@@ -70,7 +77,6 @@ if [ 0 -eq $(aws proton-preview list-service-template-minor-versions \
       --status "PUBLISHED"
 fi
 
-account_id=`aws sts get-caller-identity|jq -r ".Account"`
 
 aws proton-preview update-account-roles \
   --region ${region} \

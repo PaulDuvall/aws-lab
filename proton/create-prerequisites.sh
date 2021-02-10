@@ -2,6 +2,13 @@
 
 . proton/variables
 
+if ! jq 1>/dev/null 2>&1; then
+    # Install the jq
+    sudo yum -y install jq
+fi
+
+account_id=`aws sts get-caller-identity|jq -r ".Account"`
+
 if ! aws proton-preview help 1>/dev/null 2>&1; then
     # Install the aws CLI models for proton which is still in preview
     aws s3 cp s3://aws-proton-preview-public-files/model/proton-2020-07-20.normal.json .
