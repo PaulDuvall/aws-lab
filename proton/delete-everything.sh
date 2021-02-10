@@ -61,3 +61,7 @@ aws cloudformation wait stack-delete-complete \
 aws iam delete-role --role-name ProtonServiceRole
     
 aws proton-preview delete-account-roles --region ${region}
+
+aws s3api list-buckets --query 'Buckets[?starts_with(Name, `awsproton-front-end-`) == `true`].[Name]' --output text | xargs -I {} aws s3 rb s3://{} --force
+aws s3api list-buckets --query 'Buckets[?starts_with(Name, `awsproton-front-end-`) == `true`].[Name]' --output text | xargs -I {} aws s3 rb s3://{} --force
+

@@ -4,8 +4,7 @@ Description: A test stack for learning about AWS Proton
 Resources:
   ProtonBucket:
     Type: AWS::S3::Bucket
-    Properties:
-      BucketName: proton-sample-templates
+    DeletionPolicy: Delete
 
   ProtonServiceRole:
     Type: AWS::IAM::Role
